@@ -1,0 +1,9 @@
+prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libmodman-1.0
+Description: Module Manager Library (plugins, addins, etc)
+Version: @CMAKE_PROJECT_VERSION@
+Libs: -L${libdir} -lmodman
+Cflags: -I${includedir}
