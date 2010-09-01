@@ -4,7 +4,7 @@
 
 # Functions
 function(mm_create_module MODTYPE MODNAME MODCOND MODSYMB MODSMOD)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/module.cpp.in
+  configure_file(module.cpp.in
                  ${CMAKE_CURRENT_BINARY_DIR}/${MODTYPE}_${MODNAME}.cpp
                  @ONLY)
   add_library(${MODTYPE}_${MODNAME}
@@ -14,20 +14,24 @@ function(mm_create_module MODTYPE MODNAME MODCOND MODSYMB MODSMOD)
                         PROPERTIES PREFIX ""
                         LIBRARY_OUTPUT_DIRECTORY
                         ${CMAKE_CURRENT_BINARY_DIR}/modules/${MODTYPE})
-  target_link_libraries(${MODTYPE}_${MODNAME} libmodman)
+  target_link_libraries(${MODTYPE}_${MODNAME} modman)
 endfunction(mm_create_module)
 
 function(mm_create_program name EXTTYPE)
   add_executable(${name} main.cpp)
-  target_link_libraries(${name} libmodman)
+  target_link_libraries(${name} modman)
   set_property(TARGET ${name} PROPERTY
                COMPILE_DEFINITIONS
                EXTTYPE=${EXTTYPE}_extension)
   if(${ARGC} GREATER 2)
-    target_link_libraries(${name} ${ARGN};libmodman)
+    target_link_libraries(${name} ${ARGN};modman)
     set_property(TARGET ${name} PROPERTY 
                  COMPILE_DEFINITIONS
                  EXTTYPE=${EXTTYPE}_extension;SYMB=1)
+    if(NOT WIN32 AND NOT APPLE)
+      set_property(TARGET ${name} PROPERTY
+                   LINK_FLAGS -Wl,--no-as-needed)
+    endif()
   endif()
 endfunction(mm_create_program)
 
@@ -58,11 +62,11 @@ else()
   mm_create_program(symbollnk symbol z)
 endif()
 add_executable(builtin
-               ${CMAKE_CURRENT_SOURCE_DIR}/builtin.cpp
+               builtin.cpp
                ${CMAKE_CURRENT_BINARY_DIR}/builtin_one.cpp)
-target_link_libraries(builtin libmodman)
+target_link_libraries(builtin modman)
 set_property(TARGET builtin PROPERTY COMPILE_DEFINITIONS
-             EXTTYPE=builtin_extension;BUILTIN_MODULE="extension";MM_MODULE_BUILTIN=extension)
+             EXTTYPE=builtin_extension;BUILTIN_MODULE=extension;MM_MODULE_BUILTIN=extension)
 
 # Tests
 add_test(NAME condition COMMAND condition $<TARGET_FILE_DIR:condition_one> two)
